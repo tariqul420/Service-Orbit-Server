@@ -42,12 +42,12 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-        await client.connect();
-        await client.db("admin").command({ ping: 1 });
+        // await client.connect();
+        // await client.db("admin").command({ ping: 1 });
         console.log("☘️  You successfully connected to MongoDB!");
 
         // Database Collection Name
-        const nameCollection = client.db('NoName').collection('Name')
+        const serviceCollection = client.db('ServiceOrbit').collection('Services');
 
         // Create Jwt Token
         app.post('/jwt', async (req, res) => {
@@ -72,6 +72,18 @@ async function run() {
                 secure: process.env.NODE_ENV === "production",
                 sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
             }).send({ success: true })
+        })
+
+        // Add service
+        app.post('/add-service', verifyToken, async (req, res) => {
+            try {
+                const service = req.body
+                const result = await serviceCollection.insertOne(service)
+                res.send(result)
+            } catch (error) {
+                console.error('Add Service:', error.message)
+                res.status(500).send({ error: 'Failed to add service' })
+            }
         })
 
         // User Private Route
