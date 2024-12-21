@@ -1,13 +1,18 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 const app = express();
 
 require('dotenv').config();
 const port = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors())
+app.use(cors({
+    origin: ['http://localhost:5173'],
+    credentials: true,
+}))
 app.use(express.json())
 app.use(cookieParser())
 
@@ -30,8 +35,24 @@ async function run() {
         // Database Collection Name
         const nameCollection = client.db('NoName').collection('Name')
 
+        // Create Jwt Token
+        app.post('/jwt', async (req, res) => {
+            try {
+                const userInfo = req.body
+                const token = jwt.sign(userInfo, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' })
+                res.cookie('Service_Orbit_Token', token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+                }).send({ success: true })
+            } catch (err) {
+                console.error('JWT:', err.message)
+                res.status(500).send({ error: 'Failed to create jwt token' })
+            }
+        })
+
         // User Private Route
-        app.get('/private', verifyToken, async (req, res) => {
+        app.get('/private', async (req, res) => {
             try {
                 const { email } = req.query
                 const query = { email: email }
