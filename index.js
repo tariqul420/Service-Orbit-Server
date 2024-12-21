@@ -51,6 +51,15 @@ async function run() {
             }
         })
 
+        //logout when not access jwt token
+        app.post('/logout', async (req, res) => {
+            res.clearCookie('Service_Orbit_Token', {}, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+            }).send({ success: true })
+        })
+
         // User Private Route
         app.get('/private', async (req, res) => {
             try {
