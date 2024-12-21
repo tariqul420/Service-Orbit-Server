@@ -16,6 +16,20 @@ app.use(cors({
 app.use(express.json())
 app.use(cookieParser())
 
+// Verify Jwt Token
+const verifyToken = (req, res, next) => {
+    const token = req.cookies.ServiceOrbit_Token
+    if (!token) return res.status(401).send({ error: 'unauthorized access' })
+
+    // Verify Token
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
+        if (error) return res.status(401).send({ error: 'unauthorized access' })
+
+        req.user = decoded
+        next()
+    })
+}
+
 const uri = `mongodb+srv://${process.env.DATABASE_USERNAME}:${process.env.DATABASE_PASSWORD}@tariqul-islam.mchvj.mongodb.net/?retryWrites=true&w=majority&appName=TARIQUL-ISLAM`;
 
 const client = new MongoClient(uri, {
@@ -40,7 +54,7 @@ async function run() {
             try {
                 const userInfo = req.body
                 const token = jwt.sign(userInfo, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' })
-                res.cookie('Service_Orbit_Token', token, {
+                res.cookie('ServiceOrbit_Token', token, {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === "production",
                     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
@@ -53,7 +67,7 @@ async function run() {
 
         //logout when not access jwt token
         app.post('/logout', async (req, res) => {
-            res.clearCookie('Service_Orbit_Token', {}, {
+            res.clearCookie('ServiceOrbit_Token', {}, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
