@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -110,6 +110,38 @@ async function run() {
             } catch (error) {
                 console.error('Popular Services', error.message)
                 res.status(500).send({ error: 'Failed to get popular services data' })
+            }
+        })
+
+        // All services
+        app.get('/all-services', async (req, res) => {
+            try {
+                const { search } = req.query
+                let option = {}
+                if (search) {
+                    option = {
+                        serviceName: { $regex: search, $options: 'i' }
+                    }
+                }
+
+                const result = await serviceCollection.find(option).toArray();
+                res.send(result);
+            } catch (error) {
+                console.error('All Services', error.message);
+                res.status(500).send({ error: 'Failed to get all services' });
+            }
+        });
+
+        // Single service details
+        app.get('/service-details/:id', async (req, res) => {
+            try {
+                const id = req.params.id
+                const query = { _id: new ObjectId(id) }
+                const result = await serviceCollection.findOne(query)
+                res.send(result)
+            } catch (error) {
+                console.error('Service Details', error.message)
+                res.status(500).send({ error: 'Failed to get single service details.' })
             }
         })
 
