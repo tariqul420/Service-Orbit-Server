@@ -92,13 +92,13 @@ async function run() {
         })
 
         // Add Purchase
-        app.post('/add-purchase', async (res, res) => {
+        app.post('/add-purchase', verifyToken, async (req, res) => {
             try {
                 const purchase = req.body
                 const result = await bookNowCollection.insertOne(purchase)
                 res.send(result)
             } catch (error) {
-                console.error('Add Service:', error.message)
+                console.error('Add Purchase:', error.message)
                 res.status(500).send({ error: 'Failed to add service' })
             }
         })
@@ -158,21 +158,61 @@ async function run() {
             }
         })
 
-        // User Private Route
-        app.get('/private', async (req, res) => {
+        // My Service Route
+        app.get('/manage-service', verifyToken, async (req, res) => {
             try {
                 const { email } = req.query
-                const query = { email: email }
+                const option = { 'serviceProvider.email': email }
 
                 if (req.user.email !== email) {
                     return res.status(403).send({ error: 'Forbidden Access' })
                 }
 
-                const result = await nameCollection.find(query).toArray()
+                const result = await serviceCollection.find(option).toArray()
                 res.send(result)
             } catch (error) {
                 console.error('Private:', error.message)
                 res.status(500).send({ error: 'Failed to get private data' })
+            }
+        })
+
+        app.delete('/manage-service/:id', verifyToken, async (req, res) => {
+            try {
+                const id = req.params.id
+                const email = req.query.email
+
+                if (req.user.email !== email) {
+                    return res.status(403).send({ error: 'Forbidden Access' })
+                }
+
+                const query = { _id: new ObjectId(id) }
+                const result = await serviceCollection.deleteOne(query)
+                res.send(result)
+            } catch (error) {
+                console.error('Delete Service:', error.message)
+                res.status(500).send({ error: 'Failed to delete service' })
+            }
+        })
+
+        app.put('/update-service/:id', verifyToken, async (req, res) => {
+            try {
+                const id = req.params.id
+                const query = { _id: new ObjectId(id) }
+                const options = { upsert: true };
+                const service = req.body
+                const updateDoc = {
+                    $set: service
+                }
+
+                if (req.user.email !== service?.serviceProvider?.email) {
+                    return res.status(403).send({ error: 'Forbidden Access' })
+                }
+
+                const result = await serviceCollection.updateOne(query, updateDoc, options);
+                res.send(result)
+            } catch (error) {
+                console.error('Update Service:', error.message)
+                res.status(500).send({ error: 'Failed to Update service' })
             }
         })
 
