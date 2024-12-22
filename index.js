@@ -86,6 +86,18 @@ async function run() {
             }
         })
 
+        // Using for banner
+        app.get('/banner', async (req, res) => {
+            try {
+                const result = await serviceCollection.find().limit(6).sort({ servicePrice: -1 }).toArray()
+                res.send(result)
+
+            } catch (error) {
+                console.error('Banner', error.message)
+                res.status(500).send({ error: 'Failed to get banner data' })
+            }
+        })
+
         // User Private Route
         app.get('/private', async (req, res) => {
             try {
