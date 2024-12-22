@@ -10,7 +10,11 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:5173'],
+    origin: [
+        'http://localhost:5173',
+        'https://service-orbit.web.app',
+        'https://service-orbit.firebaseapp.com'
+    ],
     credentials: true,
 }))
 app.use(express.json())
@@ -89,12 +93,23 @@ async function run() {
         // Using for banner
         app.get('/banner', async (req, res) => {
             try {
-                const result = await serviceCollection.find().limit(6).sort({ servicePrice: -1 }).toArray()
+                const result = await serviceCollection.find().sort({ servicePrice: -1 }).toArray()
                 res.send(result)
 
             } catch (error) {
                 console.error('Banner', error.message)
                 res.status(500).send({ error: 'Failed to get banner data' })
+            }
+        })
+
+        // Popular Services
+        app.get('/popular-services', async (req, res) => {
+            try {
+                const result = await serviceCollection.find().limit(4).sort({ servicePrice: 1 }).toArray()
+                res.send(result)
+            } catch (error) {
+                console.error('Popular Services', error.message)
+                res.status(500).send({ error: 'Failed to get popular services data' })
             }
         })
 
