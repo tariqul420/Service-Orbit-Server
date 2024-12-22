@@ -52,6 +52,7 @@ async function run() {
 
         // Database Collection Name
         const serviceCollection = client.db('ServiceOrbit').collection('Services');
+        const bookNowCollection = client.db('ServiceOrbit').collection('Purchase_Book')
 
         // Create Jwt Token
         app.post('/jwt', async (req, res) => {
@@ -83,6 +84,18 @@ async function run() {
             try {
                 const service = req.body
                 const result = await serviceCollection.insertOne(service)
+                res.send(result)
+            } catch (error) {
+                console.error('Add Service:', error.message)
+                res.status(500).send({ error: 'Failed to add service' })
+            }
+        })
+
+        // Add Purchase
+        app.post('/add-purchase', async (res, res) => {
+            try {
+                const purchase = req.body
+                const result = await bookNowCollection.insertOne(purchase)
                 res.send(result)
             } catch (error) {
                 console.error('Add Service:', error.message)
