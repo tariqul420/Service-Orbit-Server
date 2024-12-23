@@ -91,10 +91,16 @@ async function run() {
             }
         })
 
-        // Add Purchase
+        // Post a Purchase request
         app.post('/add-purchase', verifyToken, async (req, res) => {
             try {
                 const purchase = req.body
+                const query = { 'currentUser.email': purchase?.currentUser?.email, serviceId: purchase?.serviceId }
+
+                const alreadyExist = await bookNowCollection.findOne(query)
+
+                if (alreadyExist) return res.status(400).send('You already purchase this service!')
+
                 const result = await bookNowCollection.insertOne(purchase)
                 res.send(result)
             } catch (error) {
@@ -171,11 +177,12 @@ async function run() {
                 const result = await serviceCollection.find(option).toArray()
                 res.send(result)
             } catch (error) {
-                console.error('Private:', error.message)
-                res.status(500).send({ error: 'Failed to get private data' })
+                console.error('My service:', error.message)
+                res.status(500).send({ error: 'Failed to get my service data' })
             }
         })
 
+        //Delete my service
         app.delete('/manage-service/:id', verifyToken, async (req, res) => {
             try {
                 const id = req.params.id
@@ -194,6 +201,7 @@ async function run() {
             }
         })
 
+        // Update My service
         app.put('/update-service/:id', verifyToken, async (req, res) => {
             try {
                 const id = req.params.id
@@ -215,6 +223,25 @@ async function run() {
                 res.status(500).send({ error: 'Failed to Update service' })
             }
         })
+
+        // Booked all Service data
+        app.get('/booked-service', verifyToken, async (req, res) => {
+            try {
+                const { email } = req.query
+                const option = { 'currentUser.email': email }
+
+                if (req.user.email !== email) {
+                    return res.status(403).send({ error: 'Forbidden Access' })
+                }
+
+                const result = await bookNowCollection.find(option).toArray()
+                res.send(result)
+            } catch (error) {
+                console.error('Booked Service:', error.message)
+                res.status(500).send({ error: 'Failed to get booked service data' })
+            }
+        })
+
 
     } catch (err) {
         console.error('Mongodb', err.message)
