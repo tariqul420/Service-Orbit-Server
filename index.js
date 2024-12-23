@@ -242,6 +242,37 @@ async function run() {
             }
         })
 
+        // Service To Do All Data
+        app.get('/service-todo', verifyToken, async (req, res) => {
+            try {
+                const email = req.query.email
+                const query = { 'serviceProvider.email': email }
+
+                if (req.user.email !== email) {
+                    return res.status(403).send({ error: 'Forbidden Access' })
+                }
+
+                const result = await bookNowCollection.find(query).toArray()
+                res.send(result)
+            } catch (error) {
+                console.error('Service Todo:', error.message)
+                res.status(500).send({ error: 'Failed to get service todo data' })
+            }
+        })
+
+        // Update Status
+        app.patch('/service-todo-update-status/:id', async (req, res) => {
+            const data = req.body
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+
+            const updated = {
+                $set: { serviceStatus: data.currentStatus },
+            }
+
+            const result = await bookNowCollection.updateOne(query, updated)
+            res.send(result)
+        })
 
     } catch (err) {
         console.error('Mongodb', err.message)
