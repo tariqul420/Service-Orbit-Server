@@ -112,14 +112,18 @@ async function run() {
         // Using for banner
         app.get('/banner', async (req, res) => {
             try {
-                const result = await serviceCollection.find().sort({ servicePrice: -1 }).toArray()
-                res.send(result)
-
+                const result = await serviceCollection
+                    .find()
+                    .limit(15)
+                    .sort({ servicePrice: -1 })
+                    .project({ serviceImage: 1, _id: 1 })
+                    .toArray();
+                res.send(result);
             } catch (error) {
-                console.error('Banner', error.message)
-                res.status(500).send({ error: 'Failed to get banner data' })
+                console.error('Banner', error.message);
+                res.status(500).send({ error: 'Failed to get banner data' });
             }
-        })
+        });
 
         // Popular Services
         app.get('/popular-services', async (req, res) => {
