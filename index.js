@@ -72,11 +72,16 @@ async function run() {
 
         //logout when not access jwt token
         app.post('/logout', async (req, res) => {
-            res.clearCookie('ServiceOrbit_Token', {}, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-            }).send({ success: true })
+            try {
+                res.clearCookie('ServiceOrbit_Token', {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+                }).send({ success: true })
+            } catch (error) {
+                console.error('Logout:', err.message)
+                res.status(500).send({ error: 'Failed to logout when not access jwt token' })
+            }
         })
 
         // Add service
