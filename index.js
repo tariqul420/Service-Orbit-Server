@@ -133,7 +133,7 @@ async function run() {
         // Popular Services
         app.get('/popular-services', async (req, res) => {
             try {
-                const result = await serviceCollection.find().limit(4).sort({ servicePrice: 1 }).toArray()
+                const result = await serviceCollection.find().limit(8).sort({ servicePrice: 1 }).toArray()
                 res.send(result)
             } catch (error) {
                 console.error('Popular Services', error.message)
